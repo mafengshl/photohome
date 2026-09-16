@@ -64,6 +64,35 @@ photohome/
 > `FEISHU_BITABLE_TABLE_ID` 全部配置在 Cloudflare Pages 环境变量，绝不进入前端代码。
 > 浏览器只访问 `/api/getPhotos` 与 `/api/photoProxy`，永远不直接接触飞书开放 API。
 
+## 缓存架构（2026-09-16 优化）
+
+### 问题
+飞书 `batch_get_tmp_download_url` 返回的临时链接有时效（通常 1 小时），无法被 Cloudflare CDN 缓存，每次刷新页面都要重新从飞书拉图片，首屏加载慢、重复请求浪费。
+
+### 方案
+引入**双代理 + 分层缓存**架构，所有飞书附件 URL 由稳定标识驱动：
+
+| 层级 | 缓存策略 | 生效位置 | 有效期 |
+|------|---------|---------|--------|
+| 图片代理 | `Cache-Control: public, max-age=86400, s-maxage=604800, immutable` | 浏览器 + CF CDN | 浏览器 1 天 / CDN 7 天 |
+| API 数据 | `Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=1800` | 浏览器 + CF CDN | 浏览器 5 分钟 / CDN 10 分钟 |
+| 静态资源 | `Cache-Control: public, max-age=31536000, immutable`（通过 `public/_headers`） | 浏览器 + CF CDN | 1 年 |
+| Function 内存 | 模块级变量 `listCache` / `tokenCache` | CF Worker 热实例 | token 2 小时 / list 30 秒 |
+
+### URL 链路
+```
+前端 <img src="/api/photoProxy?token=<file_token>">
+  ↓ Cloudflare CDN 命中? → 直接返回缓存图片 (秒级)
+  ↓ 未命中 → Pages Function photoProxy.js
+    ↓ 拿 tenant_access_token → 飞书 /drive/v1/medias/{file_token}/download
+    ↓ 流式转发图片二进制 + 强缓存头返回
+```
+
+### 关键设计
+- **file_token 作为永久标识**：飞书附件的 `file_token` 在附件不变时不会变，URL `/api/photoProxy?token=xxx` 完全稳定，可以用 `immutable` 让浏览器永不重验
+- **移除 batch_get_tmp_download_url**：不再调用飞书临时链接 API（省一次网络请求），直接从 `file_token` 构造 proxy URL
+- **`?refresh=1` 强制刷新**：`/api/getPhotos?refresh=1` 跳过内存缓存 + 返回 `no-store` 响应头，手动触发从飞书拉最新数据
+
 ## 一、创建飞书自建应用
 
 1. 打开 [飞书开放平台](https://open.feishu.cn/) → 「开发者后台」→ 创建企业自建应用。

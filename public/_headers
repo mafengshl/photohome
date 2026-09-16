@@ -1,0 +1,23 @@
+# Cloudflare Pages 自定义响应头
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# Astro 构建产物带 content-hash 文件名,内容不变则 URL 永不变 —— immutable + 1 年强缓存
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 自定义字体(手写体),极少变动,1 年缓存
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 静态图片(binky.png 等),1 年缓存
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Favicon / 根路径 HTML:短缓存 + stale-while-revalidate 保证新鲜度
+/favicon.svg
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -12,7 +12,9 @@ export interface Photo {
   photoTime?: number;
   /** 排序序号（越小越靠前，0 表示未设置） */
   sortOrder?: number;
-  /** 可直接访问的图片 URL（由后端把飞书临时链接转换为公网临时 URL） */
+  /** 飞书附件 file_token（永久标识，前端可用它构造 /api/photoProxy?token=xxx） */
+  fileToken?: string;
+  /** 可直接访问的图片 URL（后端构造的 /api/photoProxy?token=xxx，稳定可缓存） */
   url: string;
   /** 原图宽度（可能为 0，未知时由前端在加载后读取） */
   width: number;

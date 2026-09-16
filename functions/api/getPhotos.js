@@ -151,66 +151,19 @@ async function listAllRecords(env, token) {
   return { records, total };
 }
 
-// ---------- 飞书：批量获取素材临时下载链接（公网可访问） ----------
-async function batchGetTmpUrls(env, token, fileTokens) {
-  const out = new Map(); // file_token -> tmp_download_url
-  if (!fileTokens.length) return out;
-
-  const BATCH = 50;
-  for (let i = 0; i < fileTokens.length; i += BATCH) {
-    const slice = fileTokens.slice(i, i + BATCH);
-
-    // 尝试两种 API 端点：先试 batch_get_tmp_download_url
-    const url = new URL(`${FEISHU_BASE}/drive/v1/medias/batch_get_tmp_download_url`);
-    url.searchParams.set('file_tokens', slice.join(','));
-
-    let res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    let data = await res.json();
-
-    if (data.code && data.code !== 0) {
-      throw new Error(`batch_get_tmp_url error: ${data.code} ${data.msg}`);
-    }
-
-    // 飞书 API 返回格式：{ data: { tmp_download_urls: [{file_token, tmp_download_url}] } }
-    // 兼容数组与对象两种结构
-    const raw = data?.data?.tmp_download_urls;
-    if (Array.isArray(raw)) {
-      for (const it of raw) {
-        if (it?.file_token && it?.tmp_download_url) {
-          out.set(it.file_token, it.tmp_download_url);
-        }
-      }
-    } else if (raw && typeof raw === 'object') {
-      for (const [k, v] of Object.entries(raw)) {
-        if (v) out.set(k, v);
-      }
-    }
-
-    // 如果 batch API 返回空，使用图片代理端点兜底
-    if (out.size < slice.length) {
-      for (const ft of slice) {
-        if (out.has(ft)) continue;
-        // 代理 URL：前端 <img src="/api/photoProxy?token=xxx">
-        // Function 后端拿 token 从飞书下载图片二进制转发给前端
-        out.set(ft, `/api/photoProxy?token=${ft}`);
-      }
-    }
-  }
-  return out;
-}
-
 // ---------- 整理一条记录为前端可用的照片对象 ----------
-function normalizeRecord(env, record, tmpMap) {
+// 不再调用飞书 batch_get_tmp_download_url(临时链接有时效、无法 CDN 缓存),
+// 直接用 file_token 构造 /api/photoProxy?token=xxx —— photoProxy 后端拿 token
+// 从飞书 download API 拉图片二进制转发,前端 URL 稳定、可被 Cloudflare CDN 强缓存。
+function normalizeRecord(env, record) {
   const fields = record.fields || {};
   const attachments = fields[env.fieldImage];
   if (!Array.isArray(attachments) || !attachments.length) return null;
   const first = attachments[0];
   if (!first?.file_token) return null;
 
-  // 优先用临时公网链接；缺失时回退到 file_token（前端无法直访，但保留以便排查）
-  const url = tmpMap.get(first.file_token) || '';
+  const fileToken = first.file_token;
+  const url = `/api/photoProxy?token=${fileToken}`;
 
   // 标题 / 描述：飞书多行文本字段返回 [{type:'text', text:'...'}]
   const title = pickText(fields[env.fieldTitle]);
@@ -228,6 +181,7 @@ function normalizeRecord(env, record, tmpMap) {
     desc: desc || '',
     photoTime: photoTime || 0,
     sortOrder,
+    fileToken,
     url,
     width: first.width || 1000,
     height: first.height || 1000,
@@ -260,10 +214,11 @@ function pickTime(v) {
 }
 
 // ---------- 获取整理后的全量照片列表（带短缓存） ----------
-async function getAllPhotos(env) {
+// refresh=true 时跳过内存缓存，强制从飞书拉最新数据
+async function getAllPhotos(env, refresh = false) {
   const now = Date.now();
   const ttl = env.cacheTtl * 1000;
-  if (listCache.data && now - listCache.fetchedAt < ttl) {
+  if (!refresh && listCache.data && now - listCache.fetchedAt < ttl) {
     return listCache.data;
   }
   const token = await getTenantAccessToken(env);
@@ -276,16 +231,10 @@ async function getAllPhotos(env) {
 
   const { records, total } = await listAllRecords(env, token);
 
-  // 收集所有 file_token，批量转临时链接
-  const tokens = [];
-  for (const r of records) {
-    const arr = r?.fields?.[env.fieldImage];
-    if (Array.isArray(arr) && arr[0]?.file_token) tokens.push(arr[0].file_token);
-  }
-  const tmpMap = await batchGetTmpUrls(env, token, tokens);
-
+  // 不再调 batch_get_tmp_download_url —— 直接从 file_token 构造 /api/photoProxy URL。
+  // photoProxy 后端自己拿 token 从飞书 download API 拉二进制，URL 稳定可缓存。
   const photos = records
-    .map((r) => normalizeRecord(env, r, tmpMap))
+    .map((r) => normalizeRecord(env, r))
     .filter(Boolean)
     // 拍摄时间倒序（未知时间靠后）
     .sort((a, b) => (b.photoTime || 0) - (a.photoTime || 0));
@@ -303,15 +252,17 @@ export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: corsHeaders({ headers: new Headers() }) });
 }
 
-// GET /api/getPhotos?page=1&pageSize=30
+// GET /api/getPhotos?page=1&pageSize=30&refresh=1
 export async function onRequestGet({ request, env }) {
   const cors = corsHeaders(request);
   try {
+    const url = new URL(request.url);
+    const refresh = url.searchParams.get('refresh') === '1';
+
     // 本地预览 mock：显式设置 MOCK_PHOTOS=1 时返回 placeholder 图片，
     // 无需飞书密钥即可看到完整布局/交互效果。生产环境不设该变量，不受影响。
     if (env.MOCK_PHOTOS === '1' || env.MOCK_PHOTOS === 1) {
       const all = mockPhotos();
-      const url = new URL(request.url);
       const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
       const pageSize = Math.min(
         200,
@@ -319,18 +270,20 @@ export async function onRequestGet({ request, env }) {
       );
       const start = (page - 1) * pageSize;
       const slice = all.slice(start, start + pageSize);
+      const cacheControl = refresh
+        ? 'no-store'
+        : 'public, max-age=300, s-maxage=600, stale-while-revalidate=1800';
       return json(
         { photos: slice, total: all.length, page, pageSize, hasMore: start + slice.length < all.length },
         200,
-        cors,
+        { ...cors, 'Cache-Control': cacheControl },
       );
     }
 
     const envCfg = getEnv(env);
-    const all = await getAllPhotos(envCfg);
+    const all = await getAllPhotos(envCfg, refresh);
 
     // 客户端分页
-    const url = new URL(request.url);
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const pageSize = Math.min(
       200,
@@ -338,6 +291,10 @@ export async function onRequestGet({ request, env }) {
     );
     const start = (page - 1) * pageSize;
     const slice = all.slice(start, start + pageSize);
+
+    const cacheControl = refresh
+      ? 'no-store'
+      : 'public, max-age=300, s-maxage=600, stale-while-revalidate=1800';
 
     return json(
       {
@@ -348,7 +305,7 @@ export async function onRequestGet({ request, env }) {
         hasMore: start + slice.length < all.length,
       },
       200,
-      cors,
+      { ...cors, 'Cache-Control': cacheControl },
     );
   } catch (err) {
     const msg = err?.message || String(err);
@@ -380,8 +337,9 @@ function mockPhotos() {
       id: `mock-${s}`,
       title: `Sample ${i + 1}`,
       desc: '',
-      // 时间倒序，越靠前越新，便于看到轮询 prepend 效果
       photoTime: now - i * 3600_000,
+      fileToken: `mock-token-${s}`,
+      // mock 数据用 picsum 外链,不走 photoProxy(本地调试无飞书密钥时用)
       url: `https://picsum.photos/seed/${s}/${w}/${h}`,
       width: w,
       height: h,

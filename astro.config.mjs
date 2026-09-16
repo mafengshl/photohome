@@ -30,4 +30,22 @@ export default defineConfig({
     // 静态产物输出到 dist/，便于 wrangler pages 部署
     assets: 'assets',
   },
+  vite: {
+    build: {
+      // Astro 生产模式默认已开启压缩与 Tree Shaking，显式声明确保跨版本一致
+      minify: 'esbuild',
+      cssCodeSplit: true,
+      sourcemap: false,
+      target: 'es2020',
+      // 手动分包:three.js + TWEEN 独立 chunk,提升首屏并行加载与缓存复用
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['three'],
+            tween: ['@tweenjs/tween.js'],
+          },
+        },
+      },
+    },
+  },
 });
