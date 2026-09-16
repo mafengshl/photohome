@@ -1,0 +1,199 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout
+  title="Love is Here"
+  description="In A Moment We Unite — 用照片与留言记录每一个值得纪念的瞬间。"
+>
+  <!-- 柔粉渐变背景层（星星由 JS 注入） -->
+  <div id="starfield"></div>
+
+  <!-- 樱花飘落特效层（背景之上、3D圆柱之下，事件完全穿透） -->
+  <div id="petals" aria-hidden="true"></div>
+
+  <!-- 消息卡片模板：文字面 + 拍立得图片面（可翻转） -->
+  <template id="message-card-template">
+    <article class="msg-card" data-card-root>
+      <div class="msg-card__text-face" data-card-text-face>
+        <div class="header">
+          <span data-card-author>Anonymous</span>
+          <img
+            class="card-bunny-icon"
+            src="/images/binky.png"
+            alt="Binky rabbit icon"
+          />
+        </div>
+        <div class="content" data-card-content></div>
+        <div class="footer" data-card-date></div>
+      </div>
+      <div class="msg-card__image-face" data-card-image-wrap hidden>
+        <div class="msg-card__flip-container" data-flip-container>
+          <div class="msg-card__front-face">
+            <div class="msg-card__polaroid-frame">
+              <img class="msg-card__image" data-card-image src alt loading="lazy" decoding="async" />
+            </div>
+            <div class="msg-card__caption" aria-hidden="true">
+              <span class="msg-card__caption-author" data-card-image-author>Anonymous</span>
+              <span class="msg-card__caption-date" data-card-image-date></span>
+            </div>
+          </div>
+          <div class="msg-card__backface" data-card-backface>
+            <div class="msg-card__backface-content" data-card-backface-content>
+              <span class="msg-card__backface-copy" data-card-backface-copy></span>
+              <img
+                class="msg-card__backface-signoff"
+                src="/images/binky.png"
+                alt="Binky"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <!-- 3D 宇宙：标题 + Three.js CSS3DRenderer 容器 -->
+  <div class="universe-container">
+    <div class="starry-text">In A Moment We Unite</div>
+    <div id="canvas-container"></div>
+  </div>
+
+  <!-- 消息总数 -->
+  <div class="message-counter" id="message-counter">
+    <span id="total-count">0</span> MESSAGES
+  </div>
+
+  <!-- 分页控制 -->
+  <div class="pagination-ctrl" id="pagi-ui">
+    <button class="nav-btn" id="prev-btn">PREV</button>
+    <span id="page-info">PAGE 1 / -</span>
+    <button class="nav-btn" id="next-btn">NEXT</button>
+  </div>
+
+  <!-- 底部像素星球弧面场景（纯装饰） -->
+  <div class="planet-arc-wrapper" id="planet-arc">
+    <div class="planet-arc-bg"></div>
+    <div class="planet-arc-content">
+      <div class="firefly" style="left:10%;bottom:88%"></div>
+      <div class="firefly" style="left:30%;bottom:92%"></div>
+      <div class="firefly" style="right:40%;bottom:86%"></div>
+      <div class="firefly" style="right:15%;bottom:94%"></div>
+      <div class="firefly" style="right:25%;bottom:84%"></div>
+
+      <div class="grass-tuft grass-a" style="left:20%;bottom:25%;transform:scale(.8)"><span></span></div>
+      <div class="grass-tuft grass-b" style="left:32%;bottom:15%;transform:scale(.9)"><span></span></div>
+      <div class="grass-tuft grass-c" style="left:48%;bottom:20%;transform:scale(.7)"><span></span></div>
+      <div class="grass-tuft grass-a" style="left:60%;bottom:22%;transform:scale(.85)"><span></span></div>
+      <div class="grass-tuft grass-b" style="right:38%;bottom:12%;transform:scale(.8)"><span></span></div>
+      <div class="grass-tuft grass-c" style="right:22%;bottom:28%;transform:scale(.9)"><span></span></div>
+
+      <div class="scene-group scene-group--tent">
+        <div class="pixel-tent-art" style="left:25%;bottom:80%" title="帐篷"></div>
+      </div>
+
+      <div class="scene-group scene-group--blue">
+        <div
+          class="pixel-rabbit-art rabbit-blue"
+          style="left:37%;bottom:75%;transform:scaleX(-1)"
+          title="兔子"
+        ></div>
+      </div>
+
+      <div class="scene-group scene-group--party">
+        <div class="pixel-bonfire-art" style="left:50%;transform:translateX(-50%);bottom:78%"></div>
+        <div
+          class="pixel-rabbit-art rabbit-pink"
+          style="left:47%;bottom:76%;transform:scaleX(-1)"
+        ></div>
+        <div class="pixel-rabbit-art rabbit-yellow" style="left:54%;bottom:76%"></div>
+      </div>
+
+      <div class="scene-group scene-group--sky">
+        <div
+          class="pixel-telescope-art"
+          style="right:34%;bottom:82%;transform:scaleX(-1)"
+        ></div>
+        <div
+          class="pixel-rabbit-art rabbit-green"
+          style="right:34%;bottom:75%"
+          title="使用望远镜"
+        ></div>
+        <div
+          class="pixel-rabbit-art rabbit-violet"
+          style="right:30%;bottom:74%"
+          title="眺望星空"
+        ></div>
+      </div>
+
+      <div class="scene-group scene-group--meadow">
+        <div class="grass-tuft grass-a" style="left:18%;bottom:10%"><span></span></div>
+        <div class="grass-tuft grass-b" style="left:40%;bottom:12%"><span></span></div>
+        <div class="grass-tuft grass-c" style="right:18%;bottom:8%"><span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 垂直缩放滑杆 -->
+  <div id="zoom-slider-container" class="zoom-slider-container">
+    <div class="zoom-slider-wrapper">
+      <input
+        type="range"
+        id="zoom-slider"
+        class="zoom-slider"
+        min="1.0"
+        max="2.5"
+        step="0.05"
+        value="1.0"
+        aria-label="垂直缩放控制器"
+      />
+      <div class="zoom-slider-track"></div>
+      <div class="zoom-slider-thumb"></div>
+      <div class="zoom-value-display">1.0x</div>
+    </div>
+  </div>
+
+  <!-- 阅读模式翻转提示 -->
+  <div id="flip-hint" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M17 1l4 4-4 4"></path>
+      <path d="M3 11V9a4 4 0 014-4h14"></path>
+      <path d="M7 23l-4-4 4-4"></path>
+      <path d="M21 13v2a4 4 0 01-4 4H3"></path>
+    </svg>
+  </div>
+
+  <!-- 退出阅读模式 -->
+  <button id="exit-btn">EXIT READING MODE</button>
+
+  <!-- 阅读模式下打开全屏灯箱（仅图片卡显示） -->
+  <button id="magnify-btn" aria-label="全屏查看大图" title="全屏查看">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h6v6"></path>
+      <path d="M9 21H3v-6"></path>
+      <path d="M21 3l-7 7"></path>
+      <path d="M3 21l7-7"></path>
+    </svg>
+  </button>
+
+  <!-- 全屏灯箱 -->
+  <div id="lightbox" aria-hidden="true">
+    <button id="lightbox-close" aria-label="关闭全屏查看">&times;</button>
+    <button id="lightbox-prev" class="lightbox__arrow" aria-label="上一张">&#10094;</button>
+    <figure class="lightbox__figure">
+      <img id="lightbox-img" alt="" loading="lazy" decoding="async" />
+      <figcaption class="lightbox__caption">
+        <span id="lightbox-author"></span>
+        <span id="lightbox-date"></span>
+      </figcaption>
+    </figure>
+    <button id="lightbox-next" class="lightbox__arrow" aria-label="下一张">&#10095;</button>
+    <div id="lightbox-count"></div>
+  </div>
+</Layout>
+
+<script>
+  import { initApp } from '../scripts/main';
+  initApp();
+</script>

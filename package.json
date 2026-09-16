@@ -1,0 +1,25 @@
+{
+  "name": "photohome",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Event sharing photo album — Astro + TailwindCSS on Cloudflare Pages, data from Feishu Bitable.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler pages dev ./dist",
+    "cf:dev": "wrangler pages dev -- astro dev",
+    "deploy": "astro build && wrangler pages deploy ./dist"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^11.1.4",
+    "@astrojs/tailwind": "^5.1.4",
+    "@tweenjs/tween.js": "^25.0.0",
+    "@types/three": "^0.185.4",
+    "astro": "^4.16.18",
+    "tailwindcss": "^3.4.17",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

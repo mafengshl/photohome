@@ -1,0 +1,14 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": ["src", "functions", ".astro/types.d.ts"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ESNext",
+    "allowJs": true,
+    "checkJs": false,
+    "types": ["@cloudflare/workers-types/2023-07-01"]
+  }
+}

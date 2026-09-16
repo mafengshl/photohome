@@ -1,0 +1,838 @@
+<!doctype html><html lang=zh-CN><head><meta name=generator content="Hugo 0.147.7"><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><title>Love is Here</title><link rel=stylesheet href=/css/main.min.css><link rel=stylesheet href=/css/planet-arc.min.css><link rel=stylesheet href=/css/zoom-slider.min.css><link rel=stylesheet href=/css/fonts.min.css><link rel=stylesheet href=/css/cropper.min.css><link rel=stylesheet href=/css/terminal.min.css><link href=https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css rel=stylesheet crossorigin=anonymous><script type=importmap>
+    {
+        "imports": {
+            "three": "/libs/three/build/three.module.js",
+            "three/examples/jsm/": "/libs/three/examples/jsm/"
+        }
+    }
+    </script><script src=/libs/tween/tween.umd.js></script><script src=https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js crossorigin=anonymous></script></head><body><div id=starfield></div><template id=message-card-template><article class=msg-card data-card-root><div class=msg-card__text-face data-card-text-face><div class=header><span data-card-author>Anonymous</span>
+<img class=card-bunny-icon src=/images/binky.png alt="Binky rabbit icon"></div><div class=content data-card-content></div><div class=footer data-card-date></div></div><div class=msg-card__image-face data-card-image-wrap hidden><div class=msg-card__flip-container data-flip-container><div class=msg-card__front-face><div class=msg-card__polaroid-frame><img class=msg-card__image data-card-image src alt></div><div class=msg-card__caption aria-hidden=true><span class=msg-card__caption-author data-card-image-author>Anonymous</span>
+<span class=msg-card__caption-date data-card-image-date></span></div></div><div class=msg-card__backface data-card-backface><div class=msg-card__backface-content data-card-backface-content><span class=msg-card__backface-copy data-card-backface-copy></span>
+<img class=msg-card__backface-signoff src=/images/binky.png alt=Binky></div></div></div></div></article></template><div class=cropper-overlay id=cropperModal style=display:none><div class=cropper-panel><div class=cropper-header id=cropperHeader><h1>DARKROOM CROPPING</h1><div style=pointer-events:auto;cursor:pointer class=cancel-btn id=cropperCancelBtn><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div><div class=cropper-workspace id=cropperWorkspace><img id=imageToCrop src alt="Picture to crop"></div><div class=tools-panel id=toolsPanel><div class=ratio-controls><button class="btn active" data-ratio=0.7419 data-format=mini><div class=btn-icon></div><span>Mini</span>
+</button>
+<button class=btn data-ratio=1 data-format=square><div class=btn-icon></div><span>Square</span>
+</button>
+<button class=btn data-ratio=1.5967 data-format=wide><div class=btn-icon></div><span>Wide</span></button></div><button class="btn btn-primary" id=cropperConfirmBtn>
+Develop Image
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px"><polyline points="20 6 9 17 4 12"/></svg></button></div></div></div><div class=universe-container><div class=starry-text>In A Moment We Unite</div><div id=canvas-container></div></div><div class=message-counter id=message-counter><span id=total-count>42</span> MESSAGES</div><div class=pagination-ctrl id=pagi-ui><button class=nav-btn id=prev-btn>PREV</button>
+<span id=page-info>PAGE 1 / -</span>
+<button class=nav-btn id=next-btn>NEXT</button></div><div class=planet-arc-wrapper id=planet-arc><div class=planet-arc-bg></div><div class=planet-arc-content><div class=firefly style=left:10%;bottom:88%></div><div class=firefly style=left:30%;bottom:92%></div><div class=firefly style=right:40%;bottom:86%></div><div class=firefly style=right:15%;bottom:94%></div><div class=firefly style=right:25%;bottom:84%></div><div class="grass-tuft grass-a" style=left:20%;bottom:25%;transform:scale(.8)><span></span></div><div class="grass-tuft grass-b" style=left:32%;bottom:15%;transform:scale(.9)><span></span></div><div class="grass-tuft grass-c" style=left:48%;bottom:20%;transform:scale(.7)><span></span></div><div class="grass-tuft grass-a" style=left:60%;bottom:22%;transform:scale(.85)><span></span></div><div class="grass-tuft grass-b" style=right:38%;bottom:12%;transform:scale(.8)><span></span></div><div class="grass-tuft grass-c" style=right:22%;bottom:28%;transform:scale(.9)><span></span></div><div class="scene-group scene-group--tent"><div class="pixel-tent-art interactive-btn" id=tent-link style=left:25%;bottom:80% title=返回存档站><svg class="tent-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7-7 7-7-7"/></svg>
+<span class=tent-prompt>Go To Archive Site</span></div></div><div class="scene-group scene-group--blue"><div class="pixel-rabbit-art rabbit-blue" style=left:37%;bottom:75%;transform:scaleX(-1) title=兔子></div></div><div class="scene-group scene-group--party"><div class=pixel-bonfire-art style=left:50%;transform:translateX(-50%);bottom:78%></div><div class="pixel-rabbit-art rabbit-pink" style=left:47%;bottom:76%;transform:scaleX(-1)></div><div class="pixel-rabbit-art rabbit-yellow" style=left:54%;bottom:76%></div></div><div class="scene-group scene-group--sky"><div class=pixel-telescope-art style=right:34%;bottom:82%;transform:scaleX(-1)></div><div class="pixel-rabbit-art rabbit-green" style=right:34%;bottom:75% title=使用望远镜></div><div class="pixel-rabbit-art rabbit-violet" style=right:30%;bottom:74% title=眺望星空></div></div><div class="scene-group scene-group--meadow"><div class="grass-tuft grass-a" style=left:18%;bottom:10%><span></span></div><div class="grass-tuft grass-b" style=left:40%;bottom:12%><span></span></div><div class="grass-tuft grass-c" style=right:18%;bottom:8%><span></span></div></div></div></div><div id=zoom-slider-container class=zoom-slider-container><div class=zoom-slider-wrapper><input type=range id=zoom-slider class=zoom-slider min=1.0 max=2.5 step=0.05 value=1.0 aria-label=垂直缩放控制器><div class=zoom-slider-track></div><div class=zoom-slider-thumb></div><div class=zoom-value-display>1.0x</div></div></div><div id=flip-hint aria-hidden=true><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div><button id=exit-btn>EXIT READING MODE</button>
+<button id=comment-fab class=comment-fab type=button aria-label="Open comment form">
+<span class=comment-fab__prompt>Call my phone right now</span>
+<span class=comment-fab__icon aria-hidden=true title=Menu><img src=/images/phone.png alt="Phone icon" class=comment-fab__image>
+<span class=comment-fab__image-mask aria-hidden=true></span></span></button><div id=terminal-overlay class=terminal-overlay hidden><div class=terminal-screen><header class=terminal-top-bar><div class=terminal-left-group>23:11
+<img src=/images/binky_icon.png alt="Binky Icon" class=terminal-icon></div><div class=terminal-right-group><div class=terminal-signal-bars><div class=signal-bar></div><div class=signal-bar></div><div class=signal-bar></div><div class=signal-bar></div><div class=signal-bar></div></div><span>100 %</span><div class=terminal-battery><div class=terminal-bat-level></div></div></div></header><div id=v-menu class=terminal-view><div class=terminal-main-opt data-view=v-msg><span class=terminal-cursor>✦</span>留言版</div><div class=terminal-main-opt data-view=v-adv><span class=terminal-cursor>✦</span>建议反馈</div><div class=terminal-main-opt data-view=v-inf><span class=terminal-cursor>✦</span>公告</div><div class=terminal-main-opt data-view=quit style=color:rgba(224,250,255,.3);font-size:16px><span class=terminal-cursor>✦</span>退出</div></div><div id=v-msg class="terminal-view hidden"><div class=terminal-field><span class=terminal-label>昵称 ID</span>
+<input type=text class=terminal-input id=terminal-nickname placeholder=Nickname... maxlength=24></div><div class=terminal-field><span class=terminal-label>留言 message</span>
+<textarea class=terminal-textarea id=terminal-content placeholder=Input... maxlength=72></textarea><div id=terminal-counter style=font-size:12px;color:var(--lcd-dim);text-align:right;margin-top:5px>00/72</div></div><input type=file id=comment-image-input name=image_url accept=image/* style=display:none><div class=terminal-field><div class=terminal-upload-box id=terminal-upload-trigger><span id=upload-status-text>[ UPLOAD_ATTACHMENT ]</span></div><p class=terminal-note>* 提交内容将在24小时内完成审核</p></div><div class=terminal-nav-group><div class=terminal-sub-opt id=terminal-send-btn>SEND</div><div class=terminal-sub-opt data-view=v-menu>RETURN</div></div></div><div id=v-adv class="terminal-view hidden"><div class=terminal-field><span class=terminal-label>反馈类型 SELECTION_TYPE</span><div class=terminal-radio-group><div class="terminal-radio-item active" data-value=内容勘误>[X] 内容勘误 / CONTENT_ERR</div><div class=terminal-radio-item data-value=界面BUG>[ ] 界面BUG / UI_GLITCH</div><div class=terminal-radio-item data-value=其他建议>[ ] 其他建议 / OTHERS</div></div></div><div class=terminal-field><span class=terminal-label>昵称 ID</span>
+<input type=text class=terminal-input id=advices-nickname placeholder=Nickname... maxlength=24></div><div class=terminal-field><span class=terminal-label>详情 DESC</span>
+<textarea class=terminal-textarea id=advices-content placeholder=Details... maxlength=200></textarea></div><div class=terminal-nav-group><div class=terminal-sub-opt id=advices-send-btn>SEND</div><div class=terminal-sub-opt data-view=v-menu>RETURN</div></div></div><div id=v-inf class="terminal-view hidden"><div class=terminal-info-box><p style=color:var(--lcd-blue)>[ SYSTEM_PROTOCOL ]</p><p>> 联系我们:<br>> email：<br><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8b4bdacacbdaa98b1b6b9b5b7b5bdb6acafbdadb6b1acbdf6bbb7b5">[email&#160;protected]</a></code><br>> weibo:<br><code>InaMomentWeUnite存档站</code></p></div><div class=terminal-nav-group><div class=terminal-sub-opt data-view=v-menu>RETURN</div></div></div><div id=comment-sync-feedback class=comment-sync-feedback hidden aria-hidden=true><div class=comment-sync-feedback__inner><p id=comment-sync-label class=comment-sync-feedback__label>INITIATING SECURE LINK...</p><div class=sync-loader-row><span id=sync-spinner>|</span>
+<span id=comment-sync-bar class=comment-sync-feedback__bar></span>
+<span id=comment-sync-percent>0%</span></div></div></div></div></div><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type=module>
+        import { initUniverse } from '/js/universe.js';
+        import { setupInteractions } from '/js/interactions.js';
+        import { createCommentController } from '/js/comments.js';
+
+        
+        const messages = [
+            
+            
+            
+            
+            
+            {
+                id: "1785327944784",
+                author: "MeUnes",
+                content: "Minji…",
+                date: "2026-07-29",
+                timestamp: "2026-07-29T20:25:44\u002b08:00",
+                image_url: "\/images\/messages\/1785327944784.png",
+                imageUrl: "\/images\/messages\/1785327944784.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1784473017075",
+                author: "Some啪屁",
+                content: "Five is ♾️",
+                date: "2026-07-19",
+                timestamp: "2026-07-19T22:56:57\u002b08:00",
+                image_url: "\/images\/messages\/1784473017075.png",
+                imageUrl: "\/images\/messages\/1784473017075.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1784298193090",
+                author: "ihanni",
+                content: "我永远爱你们五个为梦想拼搏的女孩，你们是bunnies的骄傲",
+                date: "2026-07-17",
+                timestamp: "2026-07-17T22:23:13\u002b08:00",
+                image_url: "\/images\/messages\/1784298193090.png",
+                imageUrl: "\/images\/messages\/1784298193090.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1784293663630",
+                author: "小熊minji妮",
+                content: "想五小妹了……",
+                date: "2026-07-17",
+                timestamp: "2026-07-17T21:07:43\u002b08:00",
+                image_url: "\/images\/messages\/1784293663630.png",
+                imageUrl: "\/images\/messages\/1784293663630.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1784292580728",
+                author: "ㅈ",
+                content: "你在哪里啊 天使小熊",
+                date: "2026-07-17",
+                timestamp: "2026-07-17T20:49:40\u002b08:00",
+                image_url: "\/images\/messages\/1784292580728.png",
+                imageUrl: "\/images\/messages\/1784292580728.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1782611859605",
+                author: "Butterfly.",
+                content: "I Miss Danielle I Miss new jeans.",
+                date: "2026-06-28",
+                timestamp: "2026-06-28T09:57:39\u002b08:00",
+                image_url: "\/images\/messages\/1782611859605.png",
+                imageUrl: "\/images\/messages\/1782611859605.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1782495055134",
+                author: "Ellaxx",
+                content: "我会一直等你们miss you…五个女孩们最棒",
+                date: "2026-06-27",
+                timestamp: "2026-06-27T01:30:55\u002b08:00",
+                image_url: "\/images\/messages\/1782495055134.png",
+                imageUrl: "\/images\/messages\/1782495055134.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1781425241426",
+                author: "🫚강강 버블워터",
+                content: "뉴진스, 너희가 돌아올 때까지 기다릴게🐋",
+                date: "2026-06-14",
+                timestamp: "2026-06-14T16:20:41\u002b08:00",
+                image_url: "\/images\/messages\/1781425241426.png",
+                imageUrl: "\/images\/messages\/1781425241426.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1781007757779",
+                author: "heesoo",
+                content: "我会一直等待直到你们出现",
+                date: "2026-06-09",
+                timestamp: "2026-06-09T20:22:37\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1779887361847",
+                author: "姜姜气泡水",
+                content: "NewJeans Never DIE",
+                date: "2026-05-27",
+                timestamp: "2026-05-27T21:09:21\u002b08:00",
+                image_url: "\/images\/messages\/1779887361847.png",
+                imageUrl: "\/images\/messages\/1779887361847.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1779544421182",
+                author: "粼危不乱",
+                content: "我昨天梦到你们了，梦里我们是朋友，好幸福；你们还会回来的对吗",
+                date: "2026-05-23",
+                timestamp: "2026-05-23T21:53:41\u002b08:00",
+                image_url: "\/images\/messages\/1779544421182.png",
+                imageUrl: "\/images\/messages\/1779544421182.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778425629444",
+                author: "L.",
+                content: "영원한 행복",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T23:07:09\u002b08:00",
+                image_url: "\/images\/messages\/1778425629444.png",
+                imageUrl: "\/images\/messages\/1778425629444.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778425490859",
+                author: "LhJ^.",
+                content: "I’ll wait quietly for you to show up all the time. I miss you.",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T23:04:50\u002b08:00",
+                image_url: "\/images\/messages\/1778425490859.png",
+                imageUrl: "\/images\/messages\/1778425490859.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778423637322",
+                author: "MHDHH",
+                content: "好想你们。。😭",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T22:33:57\u002b08:00",
+                image_url: "\/images\/messages\/1778423637322.png",
+                imageUrl: "\/images\/messages\/1778423637322.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778383737251",
+                author: "xiao",
+                content: "I love you soooo…💜",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T11:28:57\u002b08:00",
+                image_url: "\/images\/messages\/1778383737251.png",
+                imageUrl: "\/images\/messages\/1778383737251.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778382861128",
+                author: "minji0507",
+                content: "miss minji",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T11:14:21\u002b08:00",
+                image_url: "\/images\/messages\/1778382861128.png",
+                imageUrl: "\/images\/messages\/1778382861128.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778380632840",
+                author: "강해린",
+                content: "NEWJEANS NEVER DIE！",
+                date: "2026-05-10",
+                timestamp: "2026-05-10T10:37:12\u002b08:00",
+                image_url: "\/images\/messages\/1778380632840.png",
+                imageUrl: "\/images\/messages\/1778380632840.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778084299972",
+                author: "Bunnies",
+                content: "MJ生日快乐",
+                date: "2026-05-07",
+                timestamp: "2026-05-07T00:18:19\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778082177923",
+                author: "大大",
+                content: "hyein🐹",
+                date: "2026-05-06",
+                timestamp: "2026-05-06T23:42:57\u002b08:00",
+                image_url: "\/images\/messages\/1778082177923.png",
+                imageUrl: "\/images\/messages\/1778082177923.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1778041742148",
+                author: "一根呆毛",
+                content: "我好想吴晓梅😭",
+                date: "2026-05-06",
+                timestamp: "2026-05-06T12:29:02\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777967974502",
+                author: "I\u0027m shy",
+                content: "Love is here",
+                date: "2026-05-05",
+                timestamp: "2026-05-05T15:59:34\u002b08:00",
+                image_url: "\/images\/messages\/1777967974502.png",
+                imageUrl: "\/images\/messages\/1777967974502.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777967640849",
+                author: "Zellis🐰",
+                content: "我想你们",
+                date: "2026-05-05",
+                timestamp: "2026-05-05T15:54:00\u002b08:00",
+                image_url: "\/images\/messages\/1777967640849.png",
+                imageUrl: "\/images\/messages\/1777967640849.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777952653007",
+                author: "FENG CI",
+                content: "我爱上了一个天使女孩…T T",
+                date: "2026-05-05",
+                timestamp: "2026-05-05T11:44:13\u002b08:00",
+                image_url: "\/images\/messages\/1777952653007.png",
+                imageUrl: "\/images\/messages\/1777952653007.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777944086909",
+                author: "ooops",
+                content: "致最最好的mhdhh，不管结果如何我都一直一直爱你们🥹🥹",
+                date: "2026-05-05",
+                timestamp: "2026-05-05T09:21:26\u002b08:00",
+                image_url: "\/images\/messages\/1777944086909.png",
+                imageUrl: "\/images\/messages\/1777944086909.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777900176235",
+                author: "ONE",
+                content: "敌人越分裂我们，我们就越团结！ 邦尼斯永远在你们身后，你们也要好好生活！ 爱你们！",
+                date: "2026-05-04",
+                timestamp: "2026-05-04T21:09:36\u002b08:00",
+                image_url: "\/images\/messages\/1777900176235.png",
+                imageUrl: "\/images\/messages\/1777900176235.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777898706020",
+                author: "zero",
+                content: "好想你们ㅠㅠ",
+                date: "2026-05-04",
+                timestamp: "2026-05-04T20:45:06\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777862261765",
+                author: "GREE.",
+                content: "希望老鲸今年可以回归，可以听到新歌，蛋妞一起合作。",
+                date: "2026-05-04",
+                timestamp: "2026-05-04T10:37:41\u002b08:00",
+                image_url: "\/images\/messages\/1777862261765.png",
+                imageUrl: "\/images\/messages\/1777862261765.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777819918784",
+                author: "梨月浅浅",
+                content: "我好想你们 newjeans全肯定",
+                date: "2026-05-03",
+                timestamp: "2026-05-03T22:51:58\u002b08:00",
+                image_url: "\/images\/messages\/1777819918784.png",
+                imageUrl: "\/images\/messages\/1777819918784.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777799257169",
+                author: "Yuky",
+                content: "newjeans啊，我想你们了，你们什么时候回来呀？😭没有你们的日子好难熬，希望bunnies无法看到你们的时候，你们也一定要幸福健康啊",
+                date: "2026-05-03",
+                timestamp: "2026-05-03T17:07:37\u002b08:00",
+                image_url: "\/images\/messages\/1777799257169.png",
+                imageUrl: "\/images\/messages\/1777799257169.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777798077265",
+                author: "Helen",
+                content: "i miss you so much…",
+                date: "2026-05-03",
+                timestamp: "2026-05-03T16:47:57\u002b08:00",
+                image_url: "\/images\/messages\/1777798077265.png",
+                imageUrl: "\/images\/messages\/1777798077265.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777618486814",
+                author: "丞乙",
+                content: "想你minji",
+                date: "2026-05-01",
+                timestamp: "2026-05-01T14:54:46\u002b08:00",
+                image_url: "\/images\/messages\/1777618486814.png",
+                imageUrl: "\/images\/messages\/1777618486814.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1777618119883",
+                author: "丞乙",
+                content: "想你老鲸🐳",
+                date: "2026-05-01",
+                timestamp: "2026-05-01T14:48:39\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775389925644",
+                author: "고양이",
+                content: "강강",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T19:52:05\u002b08:00",
+                image_url: "\/images\/messages\/1775389925644.png",
+                imageUrl: "\/images\/messages\/1775389925644.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775373266770",
+                author: "🪐🐇",
+                content: "Love is here ✨ Sitting next to you ✨",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T15:14:26\u002b08:00",
+                image_url: "",
+                imageUrl: "",
+                hasImage: false,
+                format_type: "text",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372732211",
+                author: "Heesoo",
+                content: "NJ \u0026 BN 🪐",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T15:05:32\u002b08:00",
+                image_url: "\/images\/messages\/1775372732211.png",
+                imageUrl: "\/images\/messages\/1775372732211.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372495767",
+                author: "new裤儿",
+                content: "💙🩷💛💚💜",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T15:01:35\u002b08:00",
+                image_url: "\/images\/messages\/1775372495767.png",
+                imageUrl: "\/images\/messages\/1775372495767.png",
+                hasImage: true,
+                format_type: "wide",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372339879",
+                author: "Collin",
+                content: "🐹✨",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T14:58:59\u002b08:00",
+                image_url: "\/images\/messages\/1775372339879.png",
+                imageUrl: "\/images\/messages\/1775372339879.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372247301",
+                author: "Stephen",
+                content: "🍅🐱",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T14:57:27\u002b08:00",
+                image_url: "\/images\/messages\/1775372247301.png",
+                imageUrl: "\/images\/messages\/1775372247301.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372176877",
+                author: "Demitree",
+                content: "🌻💛",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T14:56:16\u002b08:00",
+                image_url: "\/images\/messages\/1775372176877.png",
+                imageUrl: "\/images\/messages\/1775372176877.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372114650",
+                author: "Harry",
+                content: "💗🍞",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T14:55:14\u002b08:00",
+                image_url: "\/images\/messages\/1775372114650.png",
+                imageUrl: "\/images\/messages\/1775372114650.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775372026046",
+                author: "Marcus",
+                content: "🧸💙",
+                date: "2026-04-05",
+                timestamp: "2026-04-05T14:53:46\u002b08:00",
+                image_url: "\/images\/messages\/1775372026046.png",
+                imageUrl: "\/images\/messages\/1775372026046.png",
+                hasImage: true,
+                format_type: "mini",
+                source: "hugo"
+            },
+            
+            
+            
+            
+            
+            {
+                id: "1775230347349",
+                author: "bunnies",
+                content: "🐰💗",
+                date: "2026-04-03",
+                timestamp: "2026-04-03T23:32:27\u002b08:00",
+                image_url: "\/images\/messages\/1775230347349.png",
+                imageUrl: "\/images\/messages\/1775230347349.png",
+                hasImage: true,
+                format_type: "square",
+                source: "hugo"
+            }
+            
+        ].map((msg, i) => {
+            
+            if (!msg.format_type) {
+                if (msg.hasImage) {
+                    const rand = Math.random();
+                    if (rand < 0.5) msg.format_type = 'mini';
+                    else if (rand < 0.8) msg.format_type = 'square';
+                    else msg.format_type = 'wide';
+                } else {
+                    msg.format_type = 'text';
+                }
+            }
+            return msg;
+        }).sort((a, b) => new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0));
+
+        const commentController = createCommentController();
+
+        function loadAllMessages() {
+            const localComments = commentController.getStoredComments().map((c, i) => ({
+                ...c,
+                id: c.id || `local-${i}`,
+                author: c.author || c.nickname || 'Anonymous',
+                content: c.content || '',
+                image_url: c.image_url || '',
+                imageUrl: c.image_url || '',
+                hasImage: Boolean(c.image_url),
+                format_type: c.format_type || (c.image_url ? 'mini' : 'text'),
+                source: 'local',
+                timestamp: c.timestamp || new Date().toISOString(),
+                date: (c.timestamp || new Date().toISOString()).slice(0, 10)
+            }));
+
+            const messageMap = new Map();
+            [...messages, ...localComments].forEach(msg => {
+                messageMap.set(msg.id, msg);
+            });
+
+            return Array.from(messageMap.values()).sort((a, b) =>
+                new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)
+            );
+        }
+
+        function updateMessageCounter(total) {
+            const totalCountEl = document.getElementById('total-count');
+            if (totalCountEl) totalCountEl.textContent = String(total);
+        }
+
+        const allMessages = loadAllMessages();
+        const { camera, controls, renderPage } = initUniverse(allMessages);
+        const arcContainer = document.getElementById('planet-arc');
+        const exitBtn = document.getElementById('exit-btn');
+
+        setupInteractions(camera, controls, arcContainer, exitBtn, renderPage);
+        updateMessageCounter(allMessages.length);
+
+        
+        const tentLink = document.getElementById('tent-link');
+        if (tentLink) {
+            tentLink.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.location.href = 'https://inamomentweunite.com/';
+            });
+        }
+
+        commentController.attach({
+            refreshMessages: () => {
+                const nextMessages = loadAllMessages();
+                updateMessageCounter(nextMessages.length);
+                renderPage(1, nextMessages);
+            }
+        });
+
+        const starfield = document.getElementById('starfield');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            starfield.appendChild(star);
+        }
+    </script></body></html>

@@ -1,0 +1,75 @@
+---
+// 基础 HTML 骨架，承载 SEO meta、深色主题与字体预连接
+export interface Props {
+  title?: string;
+  description?: string;
+  siteUrl?: string;
+  ogImage?: string;
+}
+
+const {
+  title = 'Love is Here',
+  description = 'In A Moment We Unite — 用照片与留言记录每一个值得纪念的瞬间。',
+  siteUrl = 'https://photos.example.com',
+  ogImage,
+} = Astro.props;
+
+// 主题色与社交分享卡片
+const themeColor = '#f7c6d9';
+const canonical = new URL(Astro.url.pathname, siteUrl).toString();
+---
+
+<!doctype html>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+
+    {/* 基础 SEO */}
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content={themeColor} />
+    <meta name="color-scheme" content="light" />
+
+    {/* Open Graph 社交分享 */}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={title} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    {/* Twitter Card */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    {/* Favicon */}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* JSON-LD 结构化数据，便于搜索引擎理解站点性质 */}
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ImageGallery',
+        name: title,
+        description,
+        url: canonical,
+      })}
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  /* 布局引入全局样式（Tailwind 指令 + 自定义 CSS） */
+</style>
