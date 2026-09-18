@@ -152,10 +152,21 @@ interface PolaroidPadding {
  */
 function getPolaroidPadding(): PolaroidPadding {
   const w = window.innerWidth;
-  if (w <= 1024 && isMobileDevice()) return { top: 13, side: 13, bottom: 65 };
-  if (w <= 320) return { top: 9, side: 10, bottom: 44 };
-  if (w <= 480) return { top: 10, side: 12, bottom: 50 };
-  return { top: 15, side: 15, bottom: 74 };
+  let base: PolaroidPadding;
+  if (w <= 1024 && isMobileDevice()) base = { top: 13, side: 13, bottom: 65 };
+  else if (w <= 320) base = { top: 9, side: 10, bottom: 44 };
+  else if (w <= 480) base = { top: 10, side: 12, bottom: 50 };
+  else base = { top: 15, side: 15, bottom: 74 };
+
+  // 移动端按整体缩放因子等比缩放 padding,保持与卡片高度的比例
+  const bp = getBreakpoint();
+  if (bp === 'desktop') return base;
+  const scale = computeViewportScale(bp);
+  return {
+    top: Math.round(base.top * scale),
+    side: Math.round(base.side * scale),
+    bottom: Math.round(base.bottom * scale),
+  };
 }
 
 function ensureCardTemplate(): HTMLElement {
@@ -401,7 +412,16 @@ export function initUniverse(messages: Message[]): UniverseHandle {
   buildPageChunks(allMessages);
   renderPage(1);
 
-  window.addEventListener('resize', onWindowResize);
+  // resize 防抖 150ms，避免横竖屏切换/窗口拖动时频繁重建
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(onWindowResize, 150);
+  });
+  window.addEventListener('orientationchange', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(onWindowResize, 200);
+  });
   renderer.domElement.addEventListener('click', onDocumentClick);
   renderer.domElement.addEventListener('dblclick', onDocumentDoubleClick);
 
@@ -536,7 +556,7 @@ function setupMobileTouchOrbit(domElement: HTMLElement, rotateSpeed: number) {
   let velocityPhi = 0;
 
   const dragDamping = 0.72;
-  const inertiaDamping = 0.9;
+  const inertiaDamping = 0.82; // 移动端松手后惯性衰减更快,降低持续渲染开销
   const minVelocity = 0.00001;
   const DIRECTION_THRESHOLD = 8; // px：超过此距离才判定方向
 
@@ -827,15 +847,107 @@ function animateIn(cards: CSS3DObject[], hitMeshes: THREE.Mesh[], direction: num
  *  按实际卡片宽高计算 angleWidth，每行在半弧内居中分布。
  *  不做随机旋转/交错偏移，保持行列整齐。
  */
+/** 基于视口尺寸计算整体等比缩放因子，保持原比例不变只调整大小 */
+function computeViewportScale(bp: Breakpoint): number {
+  // PC 端不缩放
+  if (bp === 'desktop') return 1.0;
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // 以 tablet 断点边界(768px)为基准,计算当前视口相对于基准的缩放
+  // 宽度方向:768px 是 tablet 上限,小于它按比例缩
+  const widthScale = vw / 768;
+  // 高度方向:考虑横竖屏,取较小者保证卡片不溢出
+  const heightScale = vh / 1024;
+
+  // 取较小值,但最低 0.5,保证 iPhone SE 小屏也有合理尺寸
+  let scale = Math.min(widthScale, heightScale, 1.0);
+  scale = Math.max(0.5, scale);
+
+  return scale;
+}
+
+/** 基于视口动态计算布局参数:原 CARD_METRICS 值 × 整体缩放因子 */
+function computeViewDependentParams(bp: Breakpoint): {
+  radius: number;
+  rowHeight: number;
+  gap: number;
+  baseCardH: number;
+  cardScale: number;
+} {
+  const metrics = CARD_METRICS[bp];
+  const base = metrics.mini;
+  const scale = computeViewportScale(bp);
+
+  const radius = Math.round(base.radius * scale);
+  let rowHeight = Math.round(BREAKPOINT_PARAMS[bp].rowHeight * scale);
+  const gap = Math.round(BREAKPOINT_PARAMS[bp].gap * scale);
+  const baseCardH = Math.round(base.height * scale);
+
+  // 移动端动态行间距：根据屏幕比例自适应收窄三行卡片的上下留白。
+  // 仅在 mobile 断点生效；desktop / tablet 保留原 BREAKPOINT_PARAMS 逻辑。
+  if (bp === 'mobile') {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isLandscape = vw > vh;
+    // 小屏手机（iPhone SE 类、vh<580 或 vw<360）：允许进一步收窄
+    const isSmallScreen = vh < 580 || vw < 360;
+
+    // 目标：三行卡片占目标可用高度的 R（R 越大、留白越小）
+    // 主流竖屏标准（0.80）；小屏竖屏更紧凑（0.83）；横屏略宽但仍紧凑（0.77）
+    const targetRatio = isLandscape ? 0.77 : isSmallScreen ? 0.83 : 0.80;
+
+    // 目标可用高度 H = 3 * baseCardH / targetRatio
+    // 行间隙（视觉留白）= (H - 3 * baseCardH) / 行间隙数(=2)
+    const targetH = (3 * baseCardH) / targetRatio;
+    let computedGap = (targetH - 3 * baseCardH) / 2;
+    let computedRowHeight = baseCardH + computedGap;
+
+    // 视口边界：实际可见高度（卡片平面处，世界单位）
+    const fov = BREAKPOINT_PARAMS[bp].fov;
+    const fovRad = (fov * Math.PI) / 180;
+    const visibleHWorld = 2 * (100 + radius) * Math.tan(fovRad / 2);
+    // 预留顶部标题 + 底部页码栏 / 像素动物分页栏空间
+    const reservedRatio = isLandscape ? 0.3 : 0.22;
+    const actualAvailableH = visibleHWorld * (1 - reservedRatio);
+
+    // 实际可用 < 目标布局时按比例收窄，避免卡片被底部控件遮挡
+    const targetLayoutH = 3 * baseCardH + 2 * computedGap;
+    if (targetLayoutH > actualAvailableH && actualAvailableH > 0) {
+      const scaleDown = actualAvailableH / targetLayoutH;
+      computedGap = computedGap * scaleDown;
+      computedRowHeight = baseCardH + computedGap;
+    }
+
+    // 安全边界：最小行间隙防重叠，最大行间隙防退回过宽状态
+    const minGap = Math.max(6, 0.04 * baseCardH);
+    const maxGap = 0.55 * baseCardH;
+    const finalGap = Math.max(minGap, Math.min(maxGap, computedGap));
+    rowHeight = Math.round(baseCardH + finalGap);
+  }
+
+  return {
+    radius,
+    rowHeight,
+    gap,
+    baseCardH,
+    cardScale: scale,
+  };
+}
+
 function generateLayout(pageRows: PageRows) {
   const bp = getBreakpoint();
   const metrics = CARD_METRICS[bp];
-  const radius = metrics.mini.radius;
-  const ROW_HEIGHT = BREAKPOINT_PARAMS[bp].rowHeight;
-  const GAPS = BREAKPOINT_PARAMS[bp].gap;
 
   const activeRows = pageRows.filter((r) => r.length > 0);
   const ROWS = activeRows.length || 1;
+
+  const dyn = computeViewDependentParams(bp);
+  const radius = dyn.radius;
+  const ROW_HEIGHT = dyn.rowHeight;
+  const GAPS = dyn.gap;
+  const cardScale = dyn.cardScale;
 
   /** 创建卡片并摆放到圆柱内壁指定角度+行号，使用动态宽高 */
   function placeCard(item: LayoutItem, theta: number, r: number) {
@@ -865,7 +977,7 @@ function generateLayout(pageRows: PageRows) {
   }
 
   const pad = getPolaroidPadding();
-  const BASE_CARD_H = metrics.mini.height;
+  const BASE_CARD_H = dyn.baseCardH;
   const imageAreaH = BASE_CARD_H - pad.top - pad.bottom;
   /** 统一视觉间距（px），相邻卡片边框之间的留白基准 */
   const VISUAL_GAP = GAPS;
@@ -878,7 +990,7 @@ function generateLayout(pageRows: PageRows) {
     rowItems.forEach((it) => {
       if (it.formatType === 'text' || !it.msg.hasImage) {
         it.cardHeight = BASE_CARD_H;
-        it.cardWidth = it.spec.width;
+        it.cardWidth = Math.round(it.spec.width * cardScale);
       } else {
         const w = it.msg.width && it.msg.width > 0 ? it.msg.width : 1;
         const h = it.msg.height && it.msg.height > 0 ? it.msg.height : 1;

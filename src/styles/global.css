@@ -185,7 +185,7 @@ html {
 
 .starry-text {
   position: fixed;
-  top: 10%;
+  top: calc(10% + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: sloopscript, cursive;
@@ -1357,13 +1357,14 @@ body.reading-mode .msg-card.focused {
   }
 
   .message-counter {
-    bottom: calc(16vh + 10px);
+    /* tablet: arc 12vh, pagination ~36px, gap 12px */
+    bottom: calc(12vh + 36px + 20px);
     font-size: 12px;
     letter-spacing: 1px;
   }
 
   .pagination-ctrl {
-    bottom: calc(12vh + 10px);
+    bottom: calc(12vh + 12px);
     gap: 15px;
   }
 
@@ -1437,13 +1438,14 @@ body.reading-mode .msg-card.focused {
   }
 
   .message-counter {
-    bottom: calc(14vh + 10px);
+    /* small mobile: arc 12vh, pagination ~30px, gap 8px */
+    bottom: calc(12vh + 30px + 16px);
     font-size: 11px;
     letter-spacing: 0.5px;
   }
 
   .pagination-ctrl {
-    bottom: calc(10vh + 10px);
+    bottom: calc(12vh + 8px);
     gap: 10px;
   }
 
@@ -1460,7 +1462,7 @@ body.reading-mode .msg-card.focused {
 
   .planet-arc-wrapper {
     width: 180vw;
-    height: 10vh;
+    height: 12vh;
   }
 
   #exit-btn {
@@ -1722,11 +1724,7 @@ body.reading-mode .msg-card.focused {
 }
 
 @media (max-width: 480px) {
-  .planet-arc-wrapper {
-    width: 182vw;
-    height: 12vh;
-  }
-
+  /* planet-arc-wrapper 已在前面的 @media (max-width: 480px) 统一设置,不再重复 */
   .scene-group {
     width: 120px;
     height: 88px;
