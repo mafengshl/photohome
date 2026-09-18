@@ -570,7 +570,15 @@ html {
   font-size: 12px;
   line-height: 1.72;
   color: rgba(232, 235, 241, 0.94);
-  overflow: hidden;
+  /* 长文可上下滑动查看：垂直滚动 + 完全隐藏滚动条 + 触屏惯性 */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* 允许垂直滚动,水平仍交给父级(翻转/灯箱左右切) */
+  touch-action: pan-y;
+  scroll-behavior: smooth;
   padding: 12px;
   border: 1px solid var(--polaroid-inner-border);
   border-radius: 4px;
@@ -580,11 +588,35 @@ html {
     inset 0 0 2px rgba(0, 0, 0, 0.28);
 }
 
+/* WebKit/Chromium 隐藏滚动条 */
+.msg-card__backface-content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* 内容超出容器时,上下边缘极淡渐隐遮罩暗示可滑动 */
+.msg-card__backface-content.is-scrollable {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+}
+
 .msg-card__backface-copy {
   display: block;
   white-space: pre-wrap;
   word-break: break-word;
-  overflow: hidden;
 }
 
 .msg-card__backface-signoff {
@@ -726,6 +758,18 @@ body.reading-mode .msg-card--image.focused .msg-card__backface-content,
 body.reading-mode .msg-card--image.focused .msg-card__backface-copy,
 body.reading-mode .msg-card--image.focused .msg-card__backface-signoff {
   pointer-events: none;
+}
+
+/* 翻转到背面后,文字区需要接收 touch/wheel 事件才能滑动查看长描述。
+   点击仍会冒泡到 .msg-card 触发翻回正面(短点击/无垂直位移时)。 */
+body.reading-mode
+  .msg-card--image.focused.is-flipped
+  .msg-card__backface-content,
+body.reading-mode
+  .msg-card--image.focused.is-flipped
+  .msg-card__backface-content
+  .msg-card__backface-copy {
+  pointer-events: auto;
 }
 
 body.reading-mode .msg-card {

@@ -121,8 +121,15 @@ export function setupInteractions(
   }) as EventListener);
 
   document.addEventListener('keydown', handleFlipKeydown);
-  window.addEventListener('resize', refreshFlipHintPosition);
-  window.addEventListener('orientationchange', refreshFlipHintPosition);
+  window.addEventListener('resize', () => {
+    refreshFlipHintPosition();
+    // 视口/横竖屏变化时,卡片可用高度变化,重新检测背面是否需要滑动
+    if (activeCardEl) updateBackfaceScrollState(activeCardEl);
+  });
+  window.addEventListener('orientationchange', () => {
+    refreshFlipHintPosition();
+    if (activeCardEl) updateBackfaceScrollState(activeCardEl);
+  });
 
   exitBtn.addEventListener('click', () => {
     returnToOrigin();
@@ -314,6 +321,13 @@ function toggleCardFlip(cardEl: HTMLElement) {
   cardEl.classList.toggle('is-flipped', isFlipped);
   cardEl.setAttribute('aria-flipped', String(isFlipped));
 
+  // 翻到背面:重置滚动到顶,并检测是否需要滑动查看(用于 CSS 渐隐遮罩)
+  const backfaceContent = cardEl.querySelector<HTMLElement>('[data-card-backface-content]');
+  if (backfaceContent) {
+    backfaceContent.scrollTop = 0;
+    updateBackfaceScrollState(cardEl);
+  }
+
   syncFlipHint(isFlipped);
 
   window.dispatchEvent(
@@ -502,6 +516,8 @@ function waitForReadingViewStable() {
       if (!isReading || !activeCardEl) return;
       isReadingViewStable = true;
       primeFlipCard(activeCardEl);
+      // 聚焦稳定后检测背面文字是否需要滑动查看(适配不同卡片尺寸/比例)
+      updateBackfaceScrollState(activeCardEl);
       const isFlipped = activeCardEl.classList.contains('is-flipped');
       if (pendingFlipRequest && !isFlipped) {
         pendingFlipRequest = false;
@@ -563,4 +579,19 @@ function refreshFlipHintPosition(): boolean {
   flipHintEl.style.left = '50%';
   flipHintEl.style.top = `${clampedTop - hintHeight / 2}px`;
   return true;
+}
+
+/**
+ * 检测卡片背面文字是否超出容器高度,加 is-scrollable class
+ * 用于触发 CSS 上下边缘渐隐遮罩(只在内容溢出时显示)。
+ * 仅做 class 切换,实际滚动由 CSS overflow-y:auto + 浏览器原生处理。
+ */
+function updateBackfaceScrollState(cardEl: HTMLElement | null) {
+  if (!cardEl) return;
+  const content = cardEl.querySelector<HTMLElement>('[data-card-backface-content]');
+  if (!content) return;
+  // 翻转过程中 getBoundingClientRect 可能有透视变换误差,但 scrollHeight/clientHeight
+  // 是 layout 值,不受 3D 变换影响,可放心比较。
+  const isScrollable = content.scrollHeight > content.clientHeight + 2;
+  content.classList.toggle('is-scrollable', isScrollable);
 }

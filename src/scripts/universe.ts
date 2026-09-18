@@ -151,21 +151,31 @@ interface PolaroidPadding {
  * 断点下的普通类规则 (0,1,0)，因此触摸 ≤1024 时 13/13/65 优先生效。
  */
 function getPolaroidPadding(): PolaroidPadding {
-  const w = window.innerWidth;
-  let base: PolaroidPadding;
-  if (w <= 1024 && isMobileDevice()) base = { top: 13, side: 13, bottom: 65 };
-  else if (w <= 320) base = { top: 9, side: 10, bottom: 44 };
-  else if (w <= 480) base = { top: 10, side: 12, bottom: 50 };
-  else base = { top: 15, side: 15, bottom: 74 };
-
-  // 移动端按整体缩放因子等比缩放 padding,保持与卡片高度的比例
   const bp = getBreakpoint();
-  if (bp === 'desktop') return base;
+  const baseCardH = CARD_METRICS[bp].mini.height;
   const scale = computeViewportScale(bp);
+  const cardH = baseCardH * scale;
+
+  // 桌面端基准比例（padding 占卡片高度的百分比）
+  // 桌面原值 15/15/74 对应 4.7% / 4.7% / 23.1%
+  const topRatioDesktop = 0.047;
+  const bottomRatioDesktop = 0.231;
+  const sideRatioDesktop = 0.047;
+
+  // 移动端收紧（caption 字号更小，底部留白可更少）
+  const topRatioMobile = 0.043;
+  const bottomRatioMobile = 0.225;
+  const sideRatioMobile = 0.043;
+
+  const isMobile = bp === 'mobile';
+  const topR = isMobile ? topRatioMobile : topRatioDesktop;
+  const bottomR = isMobile ? bottomRatioMobile : bottomRatioDesktop;
+  const sideR = isMobile ? sideRatioMobile : sideRatioDesktop;
+
   return {
-    top: Math.round(base.top * scale),
-    side: Math.round(base.side * scale),
-    bottom: Math.round(base.bottom * scale),
+    top: Math.max(2, Math.round(cardH * topR)),
+    side: Math.max(2, Math.round(cardH * sideR)),
+    bottom: Math.max(4, Math.round(cardH * bottomR)),
   };
 }
 
