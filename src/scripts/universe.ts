@@ -566,8 +566,8 @@ function setupMobileTouchOrbit(domElement: HTMLElement, rotateSpeed: number) {
   let velocityPhi = 0;
 
   const dragDamping = 0.72;
-  const inertiaDamping = 0.82; // 移动端松手后惯性衰减更快,降低持续渲染开销
-  const minVelocity = 0.00001;
+  const inertiaDamping = 0.88; // 松手后惯性衰减:0.88 兼顾顺滑与快速停止
+  const minVelocity = 0.0008; // 速度低于此值停止,避免长时间微弱滑动
   const DIRECTION_THRESHOLD = 8; // px：超过此距离才判定方向
 
   function syncSphericalState() {
@@ -601,6 +601,9 @@ function setupMobileTouchOrbit(domElement: HTMLElement, rotateSpeed: number) {
     )
       return;
 
+    // 再次触摸时立即终止惯性滑行,无缝切换回手动拖拽,无角度跳变
+    velocityTheta = 0;
+    velocityPhi = 0;
     isDragging = true;
     gestureDirDecided = false;
     isVerticalGesture = false;
@@ -669,8 +672,9 @@ function setupMobileTouchOrbit(domElement: HTMLElement, rotateSpeed: number) {
     );
     const clampedPhi = Math.max(controls.minPolarAngle, Math.min(controls.maxPolarAngle, orbitPhi));
 
-    if (clampedTheta !== orbitTheta) velocityTheta = 0;
-    if (clampedPhi !== orbitPhi) velocityPhi = 0;
+    // 边界处快速衰减(×0.3),而非硬停止,自然减速停止,不越界、不回弹
+    if (clampedTheta !== orbitTheta) velocityTheta *= 0.3;
+    if (clampedPhi !== orbitPhi) velocityPhi *= 0.3;
 
     orbitTheta = clampedTheta;
     orbitPhi = clampedPhi;

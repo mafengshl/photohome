@@ -6,6 +6,7 @@ import { createLightbox, type Lightbox } from './lightbox';
 import { generatePetals } from './petals';
 import { getTestPhotos } from './test-data';
 import { fetchFirstWithRetry, fetchPage, startPolling, PAGE_SIZE } from './api';
+import { initMusicPlayer } from './music-player';
 import type { Photo, Message, CardType } from './types';
 
 /** ============ 数据模式开关 ============
@@ -105,6 +106,9 @@ export function initApp(): void {
   generatePetals();
   updateMessageCounter(0);
 
+  // 全局悬浮音乐播放器(与相册逻辑完全解耦,独立初始化)
+  initMusicPlayer();
+
   const arcContainer = document.getElementById('planet-arc');
   const exitBtn = document.getElementById('exit-btn');
 
@@ -117,22 +121,28 @@ export function initApp(): void {
   let currentMessages: Message[] = [];
   let lightbox: Lightbox | null = null;
 
-  const openLightboxById = (messageId: string) => {
+  const openLightboxById = (messageId: string, originRect?: DOMRect) => {
     if (!lightbox) return;
-    lightbox.open(currentMessages, messageId);
+    lightbox.open(currentMessages, messageId, originRect);
   };
 
-  // 双击圆柱中的图片卡直接开全屏灯箱
+  // 双击圆柱中的图片卡直接开全屏灯箱(携带卡片 rect 用于过渡动画)
   window.addEventListener('card-dblclick', ((e: Event) => {
     const detail = (e as CustomEvent).detail as { element?: HTMLElement };
     const id = detail.element?.dataset.messageId;
-    if (id) openLightboxById(id);
+    if (id) {
+      const rect = detail.element?.getBoundingClientRect();
+      openLightboxById(id, rect);
+    }
   }) as EventListener);
 
-  // 阅读模式下点放大按钮开全屏灯箱
+  // 阅读模式下点放大按钮开全屏灯箱(携带当前卡片 rect)
   window.addEventListener('open-lightbox', ((e: Event) => {
-    const detail = (e as CustomEvent).detail as { messageId?: string };
-    if (detail.messageId) openLightboxById(detail.messageId);
+    const detail = (e as CustomEvent).detail as { messageId?: string; element?: HTMLElement };
+    if (detail.messageId) {
+      const rect = detail.element?.getBoundingClientRect();
+      openLightboxById(detail.messageId, rect);
+    }
   }) as EventListener);
 
   (async () => {

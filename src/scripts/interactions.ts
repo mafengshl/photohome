@@ -144,7 +144,7 @@ export function setupInteractions(
     if (!messageId) return;
     window.dispatchEvent(
       new CustomEvent('open-lightbox', {
-        detail: { messageId },
+        detail: { messageId, element: activeCardEl },
       }),
     );
   });

@@ -194,6 +194,41 @@ import '../styles/global.css';
     <button id="lightbox-next" class="lightbox__arrow" aria-label="下一张">&#10095;</button>
     <div id="lightbox-count"></div>
   </div>
+
+  <!-- 全局悬浮音乐播放器（黑胶 + 歌名 + 切歌） -->
+  <div id="music-player" class="music-player" aria-label="音乐播放器">
+    <div class="music-player__track-info" data-track-info>
+      <div class="music-player__track-name-wrapper" data-track-name-wrapper>
+        <span class="music-player__track-name" data-track-name></span>
+      </div>
+    </div>
+    <button
+      class="music-player__btn music-player__btn--prev"
+      type="button"
+      aria-label="上一首"
+    >
+      <span class="music-player__btn-icon" aria-hidden="true">⏮</span>
+    </button>
+    <button
+      class="music-player__vinyl-btn"
+      type="button"
+      aria-label="播放或暂停"
+      aria-pressed="false"
+    >
+      <span class="music-player__vinyl-image" data-vinyl-image></span>
+      <span class="music-player__vinyl-center" data-vinyl-center aria-hidden="true">
+        <span class="music-player__vinyl-icon" data-vinyl-icon>▶</span>
+      </span>
+    </button>
+    <button
+      class="music-player__btn music-player__btn--next"
+      type="button"
+      aria-label="下一首"
+    >
+      <span class="music-player__btn-icon" aria-hidden="true">⏭</span>
+    </button>
+  </div>
+  <audio id="bgm-audio" muted preload="auto" hidden></audio>
 </Layout>
 
 <script>
